@@ -10,8 +10,14 @@ kullanıcı girişi bulunmaz.
 
 [https://github.com/mehmetozdmirrr/TaskFlow-Backend](https://github.com/mehmetozdmirrr/TaskFlow-Backend)
 
+## Dokümantasyon
+
+- [`docs/TaskFlow_Proje_Tanitim_Dokumani.pdf`](docs/TaskFlow_Proje_Tanitim_Dokumani.pdf) — kısa proje tanıtım dokümanı
+- [`docs/TaskFlow_Backend_Proje_Envanteri_Mehmet_Ozdemir.pdf`](docs/TaskFlow_Backend_Proje_Envanteri_Mehmet_Ozdemir.pdf) — mimari, API rotaları ve Postman test görüntülerini içeren eksiksiz proje envanteri
+
 ## İçindekiler
 
+- [Dokümantasyon](#dokümantasyon)
 - [Özellikler](#özellikler)
 - [Kullanılan Teknolojiler](#kullanılan-teknolojiler)
 - [Gereksinimler](#gereksinimler)
