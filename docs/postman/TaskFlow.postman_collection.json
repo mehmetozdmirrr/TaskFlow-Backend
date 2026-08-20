@@ -1,0 +1,1192 @@
+{
+  "info": {
+    "_postman_id": "6f2b6b1a-9a3e-4a3c-9d0a-2f6a2f9a1b10",
+    "name": "TaskFlow API",
+    "description": "Verification collection for the TaskFlow REST API (Express + JSON file persistence, no auth). Base URL is a collection variable. Run folders top to bottom: CRUD, Advanced Listing, Reports, Validation and Errors, Persistence Verification, then Cleanup - Remove Seed Data.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000", "type": "string" },
+    { "key": "taskId", "value": "", "type": "string" },
+    { "key": "seedId1", "value": "", "type": "string" },
+    { "key": "seedId2", "value": "", "type": "string" },
+    { "key": "seedId3", "value": "", "type": "string" },
+    { "key": "seedId4", "value": "", "type": "string" },
+    { "key": "seedId5", "value": "", "type": "string" },
+    { "key": "persistTaskId", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "CRUD",
+      "item": [
+        {
+          "name": "Create Task",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Backend endpointlerini tamamla\",\n  \"description\": \"Task CRUD endpointlerini geliştir ve Postman ile doğrula.\",\n  \"priority\": \"high\",\n  \"assignee\": \"Mehmet Ozdemir\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/tasks", "host": ["{{baseUrl}}"], "path": ["tasks"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', function () { pm.response.to.have.status(201); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Response has success true and a data object', function () {",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.data).to.have.property('id');",
+                  "  pm.expect(json.data.status).to.eql('pending');",
+                  "});",
+                  "pm.collectionVariables.set('taskId', json.data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Tasks",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/tasks", "host": ["{{baseUrl}}"], "path": ["tasks"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Response has data array and meta object', function () {",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.data).to.be.an('array');",
+                  "  pm.expect(json.meta).to.have.all.keys('total', 'page', 'limit', 'totalPages');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Task by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/tasks/{{taskId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", "{{taskId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Returned task matches taskId', function () {",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(String(json.data.id)).to.eql(pm.collectionVariables.get('taskId'));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Task",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Backend endpointlerini tamamla ve doğrula\",\n  \"description\": \"Task CRUD endpointlerini geliştir, Postman ile doğrula ve sonucu kaydet.\",\n  \"priority\": \"medium\",\n  \"assignee\": \"Mehmet Ozdemir\",\n  \"status\": \"in-progress\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tasks/{{taskId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", "{{taskId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Task updated with new status and priority', function () {",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.data.status).to.eql('in-progress');",
+                  "  pm.expect(json.data.priority).to.eql('medium');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Task",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/tasks/{{taskId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", "{{taskId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Deleted task is returned in data', function () {",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(String(json.data.id)).to.eql(pm.collectionVariables.get('taskId'));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Advanced Listing",
+      "item": [
+        {
+          "name": "Seed - Create Task 1 (Mehmet Ozdemir, high, pending)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Backend API dokümantasyonu hazırla\",\n  \"description\": \"Tüm endpointlerin istek ve cevap örneklerini yaz.\",\n  \"priority\": \"high\",\n  \"assignee\": \"Mehmet Ozdemir\",\n  \"status\": \"pending\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/tasks", "host": ["{{baseUrl}}"], "path": ["tasks"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', function () { pm.response.to.have.status(201); });",
+                  "pm.collectionVariables.set('seedId1', pm.response.json().data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seed - Create Task 2 (Mehmet Ozdemir, medium, in-progress)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Kullanıcı arayüzü responsive testleri\",\n  \"description\": \"Mobil ve masaüstü görünümde taşma kontrolü yap.\",\n  \"priority\": \"medium\",\n  \"assignee\": \"Mehmet Ozdemir\",\n  \"status\": \"in-progress\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/tasks", "host": ["{{baseUrl}}"], "path": ["tasks"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', function () { pm.response.to.have.status(201); });",
+                  "pm.collectionVariables.set('seedId2', pm.response.json().data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seed - Create Task 3 (Ayse Yilmaz, high, completed)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Rapor endpointlerini doğrula\",\n  \"description\": \"Completed, pending ve summary sayılarını karşılaştır.\",\n  \"priority\": \"high\",\n  \"assignee\": \"Ayse Yilmaz\",\n  \"status\": \"completed\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/tasks", "host": ["{{baseUrl}}"], "path": ["tasks"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', function () { pm.response.to.have.status(201); });",
+                  "pm.collectionVariables.set('seedId3', pm.response.json().data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seed - Create Task 4 (Ayse Yilmaz, low, pending)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Veritabanı yerine JSON dosyası kullan\",\n  \"description\": \"fs modülü ile okuma yazma işlemlerini test et.\",\n  \"priority\": \"low\",\n  \"assignee\": \"Ayse Yilmaz\",\n  \"status\": \"pending\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/tasks", "host": ["{{baseUrl}}"], "path": ["tasks"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', function () { pm.response.to.have.status(201); });",
+                  "pm.collectionVariables.set('seedId4', pm.response.json().data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seed - Create Task 5 (Ali Veli, medium, completed)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Sayfalama ve sıralama davranışını gözden geçir\",\n  \"description\": \"page, limit, sort ve order parametrelerini kontrol et.\",\n  \"priority\": \"medium\",\n  \"assignee\": \"Ali Veli\",\n  \"status\": \"completed\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/tasks", "host": ["{{baseUrl}}"], "path": ["tasks"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', function () { pm.response.to.have.status(201); });",
+                  "pm.collectionVariables.set('seedId5', pm.response.json().data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Filter by Status - pending",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/tasks?status=pending",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks"],
+              "query": [{ "key": "status", "value": "pending" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('All returned tasks are pending', function () {",
+                  "  json.data.forEach((t) => pm.expect(t.status).to.eql('pending'));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Filter by Priority - high",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/tasks?priority=high",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks"],
+              "query": [{ "key": "priority", "value": "high" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('All returned tasks are high priority', function () {",
+                  "  json.data.forEach((t) => pm.expect(t.priority).to.eql('high'));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Combined Status and Priority Filter",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/tasks?status=pending&priority=high",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks"],
+              "query": [
+                { "key": "status", "value": "pending" },
+                { "key": "priority", "value": "high" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('All returned tasks are pending and high priority', function () {",
+                  "  json.data.forEach((t) => { pm.expect(t.status).to.eql('pending'); pm.expect(t.priority).to.eql('high'); });",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Keyword Search - rapor",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/tasks/search?keyword=rapor",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", "search"],
+              "query": [{ "key": "keyword", "value": "rapor" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('At least one task matches keyword', function () { pm.expect(json.meta.total).to.be.above(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Keyword Search - No Match",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/tasks/search?keyword=zzzznomatch",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", "search"],
+              "query": [{ "key": "keyword", "value": "zzzznomatch" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('No tasks match', function () { pm.expect(json.data).to.have.lengthOf(0); pm.expect(json.meta.total).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Assignee Listing - Mehmet Ozdemir",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/tasks/assignee/Mehmet Ozdemir",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", "assignee", "Mehmet Ozdemir"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('All returned tasks belong to Mehmet Ozdemir', function () {",
+                  "  json.data.forEach((t) => pm.expect(t.assignee.toLowerCase()).to.eql('mehmet ozdemir'));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Assignee Listing - URL-Encoded Name",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/tasks/assignee/Mehmet%20Ozdemir",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", "assignee", "Mehmet%20Ozdemir"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('URL-encoded assignee name resolves to the same tasks', function () {",
+                  "  json.data.forEach((t) => pm.expect(t.assignee.toLowerCase()).to.eql('mehmet ozdemir'));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pagination - Page 1 Limit 2",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/tasks?page=1&limit=2",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "2" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Page 1 returns at most 2 tasks with correct meta', function () {",
+                  "  pm.expect(json.data.length).to.be.at.most(2);",
+                  "  pm.expect(json.meta.page).to.eql(1);",
+                  "  pm.expect(json.meta.limit).to.eql(2);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pagination - Page 2 Limit 2",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/tasks?page=2&limit=2",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks"],
+              "query": [
+                { "key": "page", "value": "2" },
+                { "key": "limit", "value": "2" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Page 2 meta is correct', function () { pm.expect(json.meta.page).to.eql(2); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sort by CreatedAt Ascending",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/tasks?sort=createdAt&order=asc",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks"],
+              "query": [
+                { "key": "sort", "value": "createdAt" },
+                { "key": "order", "value": "asc" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Tasks are sorted ascending by createdAt', function () {",
+                  "  const dates = json.data.map((t) => new Date(t.createdAt).getTime());",
+                  "  const sorted = [...dates].sort((a, b) => a - b);",
+                  "  pm.expect(dates).to.eql(sorted);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sort by CreatedAt Descending",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/tasks?sort=createdAt&order=desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks"],
+              "query": [
+                { "key": "sort", "value": "createdAt" },
+                { "key": "order", "value": "desc" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Tasks are sorted descending by createdAt', function () {",
+                  "  const dates = json.data.map((t) => new Date(t.createdAt).getTime());",
+                  "  const sorted = [...dates].sort((a, b) => b - a);",
+                  "  pm.expect(dates).to.eql(sorted);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Combined Filter, Search, Sort and Pagination",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/tasks/search?keyword=görev&status=pending&sort=createdAt&order=desc&page=1&limit=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", "search"],
+              "query": [
+                { "key": "keyword", "value": "görev" },
+                { "key": "status", "value": "pending" },
+                { "key": "sort", "value": "createdAt" },
+                { "key": "order", "value": "desc" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "5" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Response has data array and meta object', function () {",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.data).to.be.an('array');",
+                  "  pm.expect(json.meta).to.have.all.keys('total', 'page', 'limit', 'totalPages');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Reports",
+      "item": [
+        {
+          "name": "Completed Report",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/reports/completed", "host": ["{{baseUrl}}"], "path": ["reports", "completed"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Response has status and count', function () {",
+                  "  pm.expect(json.data.status).to.eql('completed');",
+                  "  pm.expect(json.data.count).to.be.a('number');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pending Report",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/reports/pending", "host": ["{{baseUrl}}"], "path": ["reports", "pending"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Response has status and count', function () {",
+                  "  pm.expect(json.data.status).to.eql('pending');",
+                  "  pm.expect(json.data.count).to.be.a('number');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Summary Report",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/reports/summary", "host": ["{{baseUrl}}"], "path": ["reports", "summary"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Summary has all expected count fields', function () {",
+                  "  pm.expect(json.data).to.have.all.keys('total', 'pending', 'inProgress', 'completed', 'highPriority');",
+                  "  pm.expect(json.data.total).to.eql(json.data.pending + json.data.inProgress + json.data.completed);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Validation and Errors",
+      "item": [
+        {
+          "name": "Missing Required Fields - 400",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{baseUrl}}/tasks", "host": ["{{baseUrl}}"], "path": ["tasks"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () { pm.response.to.have.status(400); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Validation errors array is not empty', function () {",
+                  "  pm.expect(json.success).to.eql(false);",
+                  "  pm.expect(json.errors.length).to.be.above(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Invalid Status - 400",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Geçersiz durum testi\",\n  \"description\": \"Bu istek durum alanı hatalı olduğu için 400 dönmelidir.\",\n  \"priority\": \"medium\",\n  \"assignee\": \"Test Kullanıcı\",\n  \"status\": \"archived\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/tasks", "host": ["{{baseUrl}}"], "path": ["tasks"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () { pm.response.to.have.status(400); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Errors mention invalid status', function () {",
+                  "  pm.expect(json.errors.join(' ')).to.include('Status must be one of');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Invalid Priority - 400",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Geçersiz öncelik testi\",\n  \"description\": \"Bu istek öncelik alanı hatalı olduğu için 400 dönmelidir.\",\n  \"priority\": \"urgent\",\n  \"assignee\": \"Test Kullanıcı\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/tasks", "host": ["{{baseUrl}}"], "path": ["tasks"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () { pm.response.to.have.status(400); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Errors mention invalid priority', function () {",
+                  "  pm.expect(json.errors.join(' ')).to.include('Priority must be one of');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Invalid Page - 400",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/tasks?page=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks"],
+              "query": [{ "key": "page", "value": "0" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () { pm.response.to.have.status(400); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Errors mention page', function () { pm.expect(json.errors.join(' ')).to.include('page'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Invalid Limit - 400",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/tasks?limit=-5",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks"],
+              "query": [{ "key": "limit", "value": "-5" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () { pm.response.to.have.status(400); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Errors mention limit', function () { pm.expect(json.errors.join(' ')).to.include('limit'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Invalid Sort Field - 400",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/tasks?sort=title",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks"],
+              "query": [{ "key": "sort", "value": "title" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () { pm.response.to.have.status(400); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Errors mention sort', function () { pm.expect(json.errors.join(' ')).to.include('sort'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Invalid Order Value - 400",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/tasks?order=sideways",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks"],
+              "query": [{ "key": "order", "value": "sideways" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () { pm.response.to.have.status(400); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Errors mention order', function () { pm.expect(json.errors.join(' ')).to.include('order'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Blank Keyword - 400",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/tasks/search?keyword=",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", "search"],
+              "query": [{ "key": "keyword", "value": "" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () { pm.response.to.have.status(400); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Errors mention keyword', function () { pm.expect(json.errors.join(' ')).to.include('keyword'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Task Not Found - 404",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/tasks/999999999999",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", "999999999999"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 404', function () { pm.response.to.have.status(404); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Message says Task not found', function () {",
+                  "  pm.expect(json.success).to.eql(false);",
+                  "  pm.expect(json.message).to.eql('Task not found');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Malformed JSON - 400",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"title\": \"Bozuk JSON testi\", \"description\": \"gövde kapanmıyor\"",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/tasks", "host": ["{{baseUrl}}"], "path": ["tasks"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () { pm.response.to.have.status(400); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Message says Invalid JSON payload', function () {",
+                  "  pm.expect(json.message).to.eql('Invalid JSON payload');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Persistence Verification",
+      "item": [
+        {
+          "name": "Create Task (Persistence)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Kalıcılık testi görevi\",\n  \"description\": \"Bu görev dosyaya yazılıp yazılmadığını doğrulamak için oluşturuldu.\",\n  \"priority\": \"low\",\n  \"assignee\": \"Kalıcılık Testi\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/tasks", "host": ["{{baseUrl}}"], "path": ["tasks"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', function () { pm.response.to.have.status(201); });",
+                  "pm.collectionVariables.set('persistTaskId', pm.response.json().data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Task After Create",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/tasks/{{persistTaskId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", "{{persistTaskId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200 - create was persisted', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Task (Persistence)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Kalıcılık testi görevi (güncellendi)\",\n  \"description\": \"Bu görev güncelleme sonrası dosyaya yazıldığını doğrulamak için düzenlendi.\",\n  \"priority\": \"medium\",\n  \"assignee\": \"Kalıcılık Testi\",\n  \"status\": \"completed\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tasks/{{persistTaskId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", "{{persistTaskId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Task After Update",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/tasks/{{persistTaskId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", "{{persistTaskId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200 - update was persisted', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Status field reflects the update', function () { pm.expect(json.data.status).to.eql('completed'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Task (Persistence)",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/tasks/{{persistTaskId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", "{{persistTaskId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Task After Delete (Expect 404)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/tasks/{{persistTaskId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", "{{persistTaskId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 404 - delete was persisted', function () { pm.response.to.have.status(404); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Cleanup - Remove Seed Data",
+      "item": [
+        {
+          "name": "Delete Seed Task 1",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/tasks/{{seedId1}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", "{{seedId1}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Seed Task 2",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/tasks/{{seedId2}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", "{{seedId2}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Seed Task 3",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/tasks/{{seedId3}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", "{{seedId3}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Seed Task 4",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/tasks/{{seedId4}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", "{{seedId4}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Seed Task 5",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/tasks/{{seedId5}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", "{{seedId5}}"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

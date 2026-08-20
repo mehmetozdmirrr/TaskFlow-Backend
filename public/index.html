@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TaskFlow - Görev ve Proje Yönetim Sistemi</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main-content">İçeriğe geç</a>
+
+  <header class="app-header">
+    <div class="app-header__inner">
+      <div class="app-header__titles">
+        <h1 class="app-header__title">TaskFlow</h1>
+        <p class="app-header__subtitle">Görev ve Proje Yönetim Sistemi</p>
+      </div>
+      <button type="button" id="new-task-btn" class="btn btn--primary">
+        <span aria-hidden="true">+</span> Yeni Görev
+      </button>
+    </div>
+  </header>
+
+  <main id="main-content" class="app-main">
+    <section class="stats" aria-label="Görev istatistikleri">
+      <div class="stats__grid" id="stats-grid">
+        <div class="stat-card" data-stat="total">
+          <span class="stat-card__label">Toplam</span>
+          <span class="stat-card__value" id="stat-total">-</span>
+        </div>
+        <div class="stat-card" data-stat="pending">
+          <span class="stat-card__label">Bekleyen</span>
+          <span class="stat-card__value" id="stat-pending">-</span>
+        </div>
+        <div class="stat-card" data-stat="in-progress">
+          <span class="stat-card__label">Devam Eden</span>
+          <span class="stat-card__value" id="stat-inprogress">-</span>
+        </div>
+        <div class="stat-card" data-stat="completed">
+          <span class="stat-card__label">Tamamlanan</span>
+          <span class="stat-card__value" id="stat-completed">-</span>
+        </div>
+        <div class="stat-card" data-stat="high-priority">
+          <span class="stat-card__label">Yüksek Öncelikli</span>
+          <span class="stat-card__value" id="stat-highpriority">-</span>
+        </div>
+      </div>
+      <p id="stats-error" class="stats__error" hidden role="alert">
+        İstatistikler yüklenemedi.
+        <button type="button" id="stats-retry-btn" class="btn btn--link">Tekrar dene</button>
+      </p>
+    </section>
+
+    <section class="toolbar" aria-label="Arama ve filtreler">
+      <form id="filter-form" class="toolbar__form">
+        <div class="field field--grow">
+          <label for="filter-keyword">Ara</label>
+          <input type="search" id="filter-keyword" name="keyword" placeholder="Başlık veya açıklamada ara..." autocomplete="off" />
+        </div>
+
+        <div class="field">
+          <label for="filter-status">Durum</label>
+          <select id="filter-status" name="status">
+            <option value="">Tüm Durumlar</option>
+            <option value="pending">Beklemede</option>
+            <option value="in-progress">Devam Ediyor</option>
+            <option value="completed">Tamamlandı</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="filter-priority">Öncelik</label>
+          <select id="filter-priority" name="priority">
+            <option value="">Tüm Öncelikler</option>
+            <option value="low">Düşük</option>
+            <option value="medium">Orta</option>
+            <option value="high">Yüksek</option>
+          </select>
+        </div>
+
+        <div class="field field--grow">
+          <label for="filter-assignee">Sorumlu</label>
+          <input type="text" id="filter-assignee" name="assignee" placeholder="Sorumlu adına göre filtrele..." autocomplete="off" />
+        </div>
+
+        <div class="field">
+          <label for="filter-order">Sıralama (Tarih)</label>
+          <select id="filter-order" name="order">
+            <option value="desc">Yeniden Eskiye</option>
+            <option value="asc">Eskiden Yeniye</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="filter-limit">Sayfa Başına</label>
+          <select id="filter-limit" name="limit">
+            <option value="10">10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+          </select>
+        </div>
+
+        <div class="field field--actions">
+          <button type="button" id="reset-filters-btn" class="btn btn--secondary">Filtreleri Sıfırla</button>
+        </div>
+      </form>
+      <p class="toolbar__hint" id="mode-hint" hidden></p>
+    </section>
+
+    <section class="task-list-section" aria-label="Görevler">
+      <div class="task-list-section__header">
+        <p id="result-count" class="result-count" aria-live="polite"></p>
+      </div>
+
+      <div id="list-loading" class="state-panel" hidden>
+        <p>Yükleniyor...</p>
+      </div>
+
+      <div id="list-error" class="state-panel state-panel--error" hidden role="alert">
+        <p>Görevler yüklenemedi.</p>
+        <button type="button" id="list-retry-btn" class="btn btn--secondary">Tekrar Dene</button>
+      </div>
+
+      <div id="list-empty" class="state-panel" hidden>
+        <p id="list-empty-text">Henüz görev yok. Yeni bir görev ekleyerek başlayın.</p>
+      </div>
+
+      <ul id="task-list" class="task-list" aria-live="polite"></ul>
+
+      <nav class="pagination" aria-label="Sayfalama" id="pagination">
+        <button type="button" id="prev-page-btn" class="btn btn--secondary" disabled>&larr; Önceki</button>
+        <span id="page-indicator" class="pagination__indicator">Sayfa 1 / 1</span>
+        <button type="button" id="next-page-btn" class="btn btn--secondary" disabled>Sonraki &rarr;</button>
+      </nav>
+    </section>
+  </main>
+
+  <div id="task-modal" class="modal-overlay" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="task-modal-title">
+      <div class="modal__header">
+        <h2 id="task-modal-title">Yeni Görev Oluştur</h2>
+        <button type="button" id="task-modal-close" class="btn btn--icon" aria-label="Kapat">&times;</button>
+      </div>
+      <form id="task-form" class="modal__body" novalidate>
+        <input type="hidden" id="task-id" />
+
+        <div class="field">
+          <label for="task-title">Başlık</label>
+          <input type="text" id="task-title" name="title" required minlength="3" maxlength="100" />
+          <p class="field__error" id="task-title-error"></p>
+        </div>
+
+        <div class="field">
+          <label for="task-description">Açıklama</label>
+          <textarea id="task-description" name="description" rows="4" required minlength="10" maxlength="500"></textarea>
+          <p class="field__error" id="task-description-error"></p>
+        </div>
+
+        <div class="field">
+          <label for="task-assignee">Sorumlu</label>
+          <input type="text" id="task-assignee" name="assignee" required minlength="2" />
+          <p class="field__error" id="task-assignee-error"></p>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="task-priority">Öncelik</label>
+            <select id="task-priority" name="priority" required>
+              <option value="low">Düşük</option>
+              <option value="medium" selected>Orta</option>
+              <option value="high">Yüksek</option>
+            </select>
+          </div>
+
+          <div class="field" id="task-status-field">
+            <label for="task-status">Durum</label>
+            <select id="task-status" name="status" required>
+              <option value="pending">Beklemede</option>
+              <option value="in-progress">Devam Ediyor</option>
+              <option value="completed">Tamamlandı</option>
+            </select>
+          </div>
+        </div>
+
+        <p class="form-error" id="task-form-error" role="alert" hidden></p>
+
+        <div class="modal__footer">
+          <button type="button" id="task-cancel-btn" class="btn btn--secondary">İptal</button>
+          <button type="submit" id="task-submit-btn" class="btn btn--primary">Kaydet</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="delete-modal" class="modal-overlay" hidden>
+    <div class="modal modal--small" role="alertdialog" aria-modal="true" aria-labelledby="delete-modal-title">
+      <div class="modal__header">
+        <h2 id="delete-modal-title">Görevi Sil</h2>
+        <button type="button" id="delete-modal-close" class="btn btn--icon" aria-label="Kapat">&times;</button>
+      </div>
+      <div class="modal__body">
+        <p id="delete-modal-text">Bu görevi silmek istediğinize emin misiniz?</p>
+        <p class="form-error" id="delete-form-error" role="alert" hidden></p>
+        <div class="modal__footer">
+          <button type="button" id="delete-cancel-btn" class="btn btn--secondary">İptal</button>
+          <button type="button" id="delete-confirm-btn" class="btn btn--danger">Sil</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-region" class="toast-region" role="status" aria-live="polite"></div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
