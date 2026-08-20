@@ -27,7 +27,7 @@ kullanıcı girişi bulunmaz.
 - [Frontend](#frontend)
 - [Erişilebilirlik ve Responsive Tasarım](#erişilebilirlik-ve-responsive-tasarım)
 - [Postman ile Test](#postman-ile-test)
-- [Test ve Doğrulama Özeti](#test-ve-doğrulama-özeti)
+- [Testler](#testler)
 - [Bilinen Sınırlamalar](#bilinen-sınırlamalar)
 - [Proje Bilgisi](#proje-bilgisi)
 
@@ -150,10 +150,9 @@ taskflow-api/
 │   └── js/
 │       └── app.js                   # Frontend mantığı (fetch tabanlı)
 ├── docs/
-│   ├── postman/                     # Postman collection, environment ve ekran görüntüsü prosedürü
+│   ├── postman/                     # Postman collection, environment ve test prosedürü
 │   ├── screenshots/
-│   │   ├── postman/                 # Gerçek Postman ekran görüntüleri (15 adet)
-│   │   └── ui/                      # (isteğe bağlı, bu teslimde henüz doldurulmadı)
+│   │   └── postman/                 # Postman API test görüntüleri (15 adet)
 │   └── TaskFlow_Proje_Tanitim_Dokumani.pdf
 ├── .env.example
 ├── .gitignore
@@ -201,7 +200,7 @@ doğrulanır; `id` ve `createdAt` istemciden alınmaz, mevcut kayıttan korunur.
 Temel yol öneki (`/api` gibi) kullanılmaz; tüm rotalar doğrudan kök yoldan
 sunulur.
 
-### Zorunlu CRUD
+### CRUD Endpoint'leri
 
 | Method | Rota | Açıklama | Başarı kodu |
 | --- | --- | --- | --- |
@@ -323,9 +322,8 @@ Beklenen HTTP durum kodları:
 - Liste/arama/rapor istekleri dosyaya asla yazmaz.
 - Sunucu yeniden başlatıldığında veriler `data/tasks.json` üzerinden
   korunur.
-- Teslim anında `data/tasks.json` kasıtlı olarak boş bir dizi (`[]`)
-  içerir; uygulamayı ilk kez çalıştıran kişi temiz bir veri setiyle
-  başlar.
+- `data/tasks.json` varsayılan olarak boş bir dizi (`[]`) ile gelir;
+  projeyi ilk çalıştıran kişi temiz bir veri setiyle başlar.
 
 ## Frontend
 
@@ -394,51 +392,65 @@ Postman dosyaları `docs/postman/` altında bulunur:
 Tam adımlar ve ekran görüntüsü dosya adları için
 `docs/postman/SCREENSHOT_CHECKLIST.md` dosyasına bakın.
 
-### Ekran görüntüsü kanıtı
+### API Test Görüntüleri
 
-`docs/screenshots/postman/` klasöründe, gerçek bir Postman koşumunda
-alınmış 15 ekran görüntüsü bulunur. Aşağıda temsili bir seçki paylaşılmıştır;
-kalan görüntüler aynı klasörde ek kanıt olarak mevcuttur.
+`docs/screenshots/postman/` klasöründe, Postman collection'ın çalıştırılmasından
+alınmış 15 ekran görüntüsü bulunur; CRUD işlemleri, doğrulama/hata
+davranışı, gelişmiş listeleme ve raporlar olmak üzere dört grupta
+toplanmıştır.
 
-| Senaryo | Beklenen durum | Ekran görüntüsü |
-| --- | --- | --- |
-| Görev oluşturma | `201` | [`docs/screenshots/postman/01-create-task-201.png`](docs/screenshots/postman/01-create-task-201.png) |
-| Görevleri listeleme | `200` | [`docs/screenshots/postman/02-list-tasks-200.png`](docs/screenshots/postman/02-list-tasks-200.png) |
-| Görev güncelleme | `200` | [`docs/screenshots/postman/04-update-task-200.png`](docs/screenshots/postman/04-update-task-200.png) |
-| Doğrulama hatası | `400` | [`docs/screenshots/postman/06-validation-error-400.png`](docs/screenshots/postman/06-validation-error-400.png) |
-| Görev bulunamadı | `404` | [`docs/screenshots/postman/07-task-not-found-404.png`](docs/screenshots/postman/07-task-not-found-404.png) |
-| Birleşik filtre (durum + öncelik) | `200` | [`docs/screenshots/postman/08-combined-filter-200.png`](docs/screenshots/postman/08-combined-filter-200.png) |
-| Özet raporu | `200` | [`docs/screenshots/postman/12-summary-report-200.png`](docs/screenshots/postman/12-summary-report-200.png) |
+**CRUD işlemleri**
 
-Kalan 8 ekran görüntüsü (detay getirme, silme, çalışana göre listeleme,
-anahtar kelime araması, sayfalama, tamamlanan/bekleyen raporları, bozuk
-JSON) `docs/screenshots/postman/` klasöründe ek kanıt olarak durur.
+| Senaryo | Method / Rota | Durum | Ekran görüntüsü |
+| --- | --- | --- | --- |
+| Görev oluşturma | `POST /tasks` | `201` | [`01-create-task-201.png`](docs/screenshots/postman/01-create-task-201.png) |
+| Görevleri listeleme | `GET /tasks` | `200` | [`02-list-tasks-200.png`](docs/screenshots/postman/02-list-tasks-200.png) |
+| Tek görev getirme | `GET /tasks/:id` | `200` | [`03-get-task-by-id-200.png`](docs/screenshots/postman/03-get-task-by-id-200.png) |
+| Görev güncelleme | `PUT /tasks/:id` | `200` | [`04-update-task-200.png`](docs/screenshots/postman/04-update-task-200.png) |
+| Görev silme | `DELETE /tasks/:id` | `200` | [`05-delete-task-200.png`](docs/screenshots/postman/05-delete-task-200.png) |
 
-Frontend/UI ekran görüntüleri (`docs/screenshots/ui/`) bu teslimde henüz
-eklenmemiştir; brief'te bu görüntüler zorunlu değil, önerilen ek kanıt
-olarak listelenir.
+**Doğrulama ve hata yönetimi**
 
-## Test ve Doğrulama Özeti
+| Senaryo | Method / Rota | Durum | Ekran görüntüsü |
+| --- | --- | --- | --- |
+| Doğrulama hatası (eksik/geçersiz alan) | `POST /tasks` | `400` | [`06-validation-error-400.png`](docs/screenshots/postman/06-validation-error-400.png) |
+| Görev bulunamadı | `GET /tasks/:id` | `404` | [`07-task-not-found-404.png`](docs/screenshots/postman/07-task-not-found-404.png) |
+| Bozuk JSON gövdesi | `POST /tasks` | `400` | [`15-malformed-json-400.png`](docs/screenshots/postman/15-malformed-json-400.png) |
 
-Bu proje üç ayrı doğrulama katmanından geçmiştir; hiçbiri diğerinin
-yerine geçmez:
+**Gelişmiş listeleme**
 
-1. **Otomatik HTTP doğrulaması** — geliştirme sırasında `node --check` ile
-   sözdizimi kontrolleri ve `curl`/Node.js ile CRUD, doğrulama/hata,
-   gelişmiş listeleme, rapor ve kalıcılık davranışları uçtan uca test
-   edildi; harici bir test kütüphanesi (Jest vb.) kullanılmadı.
-2. **Manuel tarayıcı doğrulaması** — masaüstü ve mobil düzen, oluşturma/
-   düzenleme/silme akışları, canlı istatistik yenilemesi, Türkçe karakter
-   render'ı, filtrelenmiş/filtrelenmemiş boş durumlar, toast bildirimleri
-   ve yatay taşma olmaması Chrome'da gerçek kullanıcı tarafından manuel
-   olarak doğrulandı.
-3. **Manuel Postman doğrulaması** — collection, Postman masaüstü
-   uygulamasına gerçekten import edilip çalıştırıldı; 15 gerçek ekran
-   görüntüsü `docs/screenshots/postman/` altına kaydedildi.
+| Senaryo | Method / Rota | Durum | Ekran görüntüsü |
+| --- | --- | --- | --- |
+| Birleşik filtre (durum + öncelik) | `GET /tasks?status=...&priority=...` | `200` | [`08-combined-filter-200.png`](docs/screenshots/postman/08-combined-filter-200.png) |
+| Çalışana göre listeleme | `GET /tasks/assignee/:name` | `200` | [`09-assignee-listing-200.png`](docs/screenshots/postman/09-assignee-listing-200.png) |
+| Anahtar kelime araması | `GET /tasks/search?keyword=...` | `200` | [`13-keyword-search-200.png`](docs/screenshots/postman/13-keyword-search-200.png) |
+| Sayfalama (2. sayfa) | `GET /tasks?page=2&limit=...` | `200` | [`14-pagination-page-2-200.png`](docs/screenshots/postman/14-pagination-page-2-200.png) |
 
-Otomatik denetim, JSON dosya kalıcılığını (yeniden başlatma sonrası veri
-korunumu), raporların dosyaya yazmadığını ve tüm geçersiz sorgu/gövde
-kombinasyonlarının `400`/`404` döndürdüğünü doğruladı.
+**Raporlar**
+
+| Senaryo | Method / Rota | Durum | Ekran görüntüsü |
+| --- | --- | --- | --- |
+| Tamamlanan görev raporu | `GET /reports/completed` | `200` | [`10-completed-report-200.png`](docs/screenshots/postman/10-completed-report-200.png) |
+| Bekleyen görev raporu | `GET /reports/pending` | `200` | [`11-pending-report-200.png`](docs/screenshots/postman/11-pending-report-200.png) |
+| Özet raporu | `GET /reports/summary` | `200` | [`12-summary-report-200.png`](docs/screenshots/postman/12-summary-report-200.png) |
+
+## Testler
+
+Proje aşağıdaki katmanlarda test edilmiştir:
+
+- **Sözdizimi kontrolleri** — tüm `src/` ve `public/js/` dosyaları
+  `node --check` ile doğrulanır.
+- **HTTP entegrasyon kontrolleri** — CRUD işlemleri, gelişmiş listeleme
+  (filtre, arama, çalışana göre listeleme, sıralama, sayfalama), doğrulama/
+  hata davranışı ve JSON dosya kalıcılığı (yeniden başlatma sonrası veri
+  korunumu, raporların dosyaya yazmaması) uçtan uca doğrulanmıştır.
+- **Tarayıcı kontrolleri** — masaüstü ve mobil düzen, oluşturma/düzenleme/
+  silme akışları, canlı istatistik yenilemesi, Türkçe karakter render'ı,
+  boş durumlar, toast bildirimleri ve yatay taşma olmaması Chrome'da
+  doğrulanmıştır.
+- **Postman collection** — `docs/postman/` altındaki collection ile CRUD,
+  gelişmiş listeleme, doğrulama/hata ve kalıcılık senaryoları kapsanmış,
+  sonuçlar `docs/screenshots/postman/` altına kaydedilmiştir.
 
 ## Bilinen Sınırlamalar
 
